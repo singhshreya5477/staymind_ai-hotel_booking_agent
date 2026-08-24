@@ -164,3 +164,23 @@ def test_verified_alternative_can_be_priced_next_turn():
     assert "₹26,880" in response
     assert "Garden Suite" in response
     assert agent.state.last_next_action == "ask_for_room_selection"
+
+def test_active_hold_acknowledgement_does_not_restart_flow():
+    state = BookingState()
+    agent = Agent(state)
+    agent.run("Goa next weekend for 3 people")
+    agent.run("Please place a hold on the Private Pool Villa")
+    response = agent.run("Thanks, I understand. No further action is needed.")
+    assert "remains active" in response
+    assert "No further action is needed" in response
+    assert agent.state.last_next_action == "close_conversation"
+    assert agent.trace[0][0] == "get_booking_hold"
+
+def test_active_hold_prevents_duplicate_hold():
+    state = BookingState()
+    agent = Agent(state)
+    agent.run("Goa next weekend for 3 people")
+    first = agent.run("Please place a hold on the Private Pool Villa")
+    second = agent.run("Please place another hold on the Private Pool Villa")
+    assert "HOLD-" in first
+    assert "already have an active hold" in second

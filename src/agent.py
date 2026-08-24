@@ -126,6 +126,17 @@ class Agent:
                 self.state.last_next_action = "ask_for_room_selection"
                 self.trace.append(("calculate_price", [price]))
                 return f"The estimated total for the {alternative['room']} at {alternative['property']} is ₹{price['total']:,}, including 12% tax for {price['nights']} nights. Would you like me to place a 15-minute booking hold?"
+        if self.state.hold_id and self.is_hold_acknowledgement(text):
+            hold = get_booking_hold(self.state.hold_id)
+            self.trace.append(("get_booking_hold", hold))
+            if hold.get("found"):
+                from datetime import datetime
+                from zoneinfo import ZoneInfo
+                expires = datetime.fromisoformat(hold["expires_at"]).astimezone(ZoneInfo("Asia/Kolkata"))
+                self.state.last_next_action = "close_conversation"
+                return (f"You’re welcome. Your hold for the {hold['room_name']} at {hold['property_name']} "
+                        f"remains active until {expires:%d %b %Y, %I:%M %p} IST.\n\n"
+                        "No further action is needed. If you would like to modify the stay or review the hold again, just let me know.")
         option_number = extract_option_number(text)
         if option_number is not None and self.state.last_recommendations:
             if option_number < 1 or option_number > len(self.state.last_recommendations):
@@ -152,19 +163,28 @@ class Agent:
                 f"Great choice. The {selected['room']} at {selected['property']} is selected.\n"
                 "Would you like me to place a 15-minute booking hold?"
             )
+
         if wants_hold and self.state.last_recommendations:
             if not self.state.selected_room_id:
                 return "Which room would you like me to hold: the " + " or the ".join(r["room"] for r in self.state.last_recommendations[:2]) + "?"
             result = next((r for r in self.state.last_recommendations if r["room_id"] == self.state.selected_room_id), None)
             if not result:
                 return "Please choose one of the rooms in the recommendations before I place a hold."
+            if self.state.hold_id:
+                existing_hold = get_booking_hold(self.state.hold_id)
+                self.trace.append(("get_booking_hold", existing_hold))
+                if existing_hold.get("found") and existing_hold.get("status") == "active":
+                    self.state.last_next_action = "await_guest_or_hold_expiry"
+                    return (f"You already have an active hold, {existing_hold['hold_id']}, for "
+                            f"{existing_hold['room_name']}. It expires at {existing_hold['expires_at']}. "
+                            "Would you like to keep it or replace it?")
             try:
                 hold = create_booking_hold(self.state, result)
             except ValueError as error:
                 self.trace.append(("error", str(error)))
                 return f"I could not create the hold: {error}."
             self.state.hold_id = hold["hold_id"]
-            self.state.last_next_action = "confirm_hold"
+            self.state.last_next_action = "await_guest_or_hold_expiry"
             self.trace.append(("create_booking_hold", hold))
             return f"Your 15-minute booking hold is {hold['hold_id']} for {result['room']}."
         results = search_properties(self.state)
@@ -225,6 +245,14 @@ class Agent:
             if result["room"].lower() in normalized or result["property"].lower() in normalized:
                 return result
         return None
+
+    def is_hold_acknowledgement(self, text):
+        closure_phrases = ("no further action", "nothing else", "that is all", "all set", "no action needed")
+        acknowledgement_phrases = ("thank you", "thanks", "understand")
+        return any(phrase in text for phrase in closure_phrases) or (
+            any(phrase in text for phrase in acknowledgement_phrases)
+            and not any(phrase in text for phrase in ("confirm", "details", "expiry", "expires", "review", "status"))
+        )
 
     def should_use_llm(self, message):
         phrases = ("whichever", "other one", "better", "peaceful", "somewhere nice", "a little longer", "too expensive")
