@@ -2,6 +2,8 @@
 
 Grounded conversational hotel-booking agent with a FastAPI backend and Next.js frontend.
 
+**Live app:** <https://staymind.netlify.app/>
+
 ## Features
 
 - Natural-language hotel search across Goa, Jaipur, Manali, and Bengaluru
