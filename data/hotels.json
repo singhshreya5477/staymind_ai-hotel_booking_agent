@@ -1,0 +1,5 @@
+[
+  {"id":"goa-sands","name":"Goa Sands Retreat","city":"Goa","rooms":[{"id":"pool-villa","name":"Private Pool Villa","capacity":4,"rate":18000,"amenities":["private pool","wifi","breakfast"],"inventory":10},{"id":"garden-suite","name":"Garden Suite","capacity":3,"rate":12000,"amenities":["garden","wifi"],"inventory":10}]},
+  {"id":"jaipur-courtyard","name":"Jaipur Courtyard","city":"Jaipur","rooms":[{"id":"heritage-suite","name":"Heritage Suite","capacity":3,"rate":11000,"amenities":["courtyard","wifi"],"inventory":10},{"id":"courtyard-villa","name":"Courtyard Villa","capacity":5,"rate":16000,"amenities":["private pool","courtyard","wifi"],"inventory":10}]},
+  {"id":"manali-pines","name":"Manali Pines Lodge","city":"Manali","rooms":[{"id":"pine-chalet","name":"Pine View Chalet","capacity":4,"rate":9500,"amenities":["mountain view","wifi","breakfast"],"inventory":10},{"id":"river-suite","name":"River Suite","capacity":3,"rate":12000,"amenities":["river view","wifi"],"inventory":10}]}
+]

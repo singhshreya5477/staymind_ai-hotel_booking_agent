@@ -1,0 +1,7 @@
+{
+  "destinations": [
+    {"canonical_name":"Goa","aliases":["goa","north goa","south goa","candolim","calangute"]},
+    {"canonical_name":"Jaipur","aliases":["jaipur","pink city","bani park"]},
+    {"canonical_name":"Manali","aliases":["manali","old manali","mall road manali"]}
+  ]
+}

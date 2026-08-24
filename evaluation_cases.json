@@ -1,0 +1,51 @@
+[
+  {
+    "id": "basic_goa_booking",
+    "messages": ["Goa next weekend for 3 people, preferably with a private pool and a budget under ₹20,000 per night."],
+    "expected_state": {"destination": "Goa", "adults": 3, "budget_per_night": 20000, "preferences_include": ["private pool"]},
+    "required_tools": ["resolve_destination", "search_properties", "check_availability", "calculate_price"],
+    "expected_next_action": "ask_for_room_selection"
+  },
+  {
+    "id": "unsupported_destination",
+    "messages": ["I need a hotel in Udaipur tomorrow for 2 people."],
+    "required_tools": ["resolve_destination"],
+    "forbidden_tools": ["search_properties", "create_booking_hold"],
+    "response_must_include": ["verified inventory", "Goa", "Jaipur", "Manali"]
+  },
+  {
+    "id": "unknown_pool_heating",
+    "messages": ["Is the private pool heated?"],
+    "response_must_include": ["do not have verified information"],
+    "response_must_not_include": ["the pool is heated"]
+  },
+  {
+    "id": "capacity_conflict",
+    "messages": ["I need one room in Goa next weekend for 5 people."],
+    "required_tools": ["search_properties"],
+    "response_must_include": ["cannot accommodate 5 guests"]
+  },
+  {
+    "id": "option_two_selection",
+    "messages": ["Goa next weekend for 3 people.", "I would like option 2, the Garden Suite."],
+    "expected_state": {"selected_property_id": "goa-sands", "selected_room_id": "garden-suite"},
+    "required_tools": ["select_recommendation"],
+    "expected_next_action": "ask_for_booking_hold"
+  },
+  {
+    "id": "no_availability_alternative",
+    "messages": ["I want the Private Pool Villa in Goa from 2026-09-01 to 2026-09-03 for 3 people."],
+    "required_tools": ["check_availability", "search_properties"],
+    "expected_next_action": "offer_price_calculation",
+    "response_must_include": ["not available for every requested night", "Garden Suite", "₹12,000"],
+    "response_must_not_include": ["hold is active", "booking confirmed"]
+  },
+  {
+    "id": "capacity_conflict",
+    "messages": ["I need one room in Goa next weekend for 5 people."],
+    "required_tools": ["search_properties"],
+    "expected_next_action": "ask_room_split_or_destination",
+    "response_must_include": ["single room", "5 guests"],
+    "response_must_not_include": ["Private Pool Villa is available", "Garden Suite is available"]
+  }
+]
