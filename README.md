@@ -1,24 +1,26 @@
 # StayMind AI
 
-A hotel-booking agent with a deterministic Python core, a FastAPI API, and a Next.js web interface.
+Grounded conversational hotel-booking agent with a FastAPI backend and Next.js frontend.
 
-## Run
+## Features
 
-```bash
-python -m pip install -r requirements.txt
-streamlit run app.py
-```
+- Natural-language hotel search across Goa, Jaipur, and Manali
+- Catalog-backed availability, capacity, pricing, and policies
+- Deterministic totals with 12% tax
+- Room selection and 15-minute booking holds
+- Persistent session state, tool traces, and hold verification
+- Optional OpenAI function calling with offline fallback
 
-## Web application
+## Run the web app
 
-Install backend dependencies and start the API from the repository root:
+From the repository root:
 
 ```bash
 python -m pip install -r backend/requirements.txt
 uvicorn backend.app.main:app --reload --port 8000
 ```
 
-In a second terminal, install and start the frontend:
+In a second terminal:
 
 ```bash
 cd frontend
@@ -26,23 +28,28 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:3000`. The API keeps an in-memory session for the demo; a production deployment should use Redis, PostgreSQL, or another persistent session store.
+Open <http://localhost:3000>.
 
-Run tests with `pytest`.
+Run tests with:
 
-## Structure
+```bash
+python -m pytest
+```
 
-- `app.py`: chat and evaluator trace panel
-- `backend/app/main.py`: FastAPI health, chat, and reset endpoints
-- `frontend/app/page.tsx`: responsive chat and booking-state interface
-- `src/state.py`: booking state and date resolution
-- `src/location.py`: catalog-backed destination aliases and resolution
-- `src/tools.py`: six grounded hotel tools and deterministic pricing
-- `src/agent.py`: short deterministic agent flow
-- `data/hotels.json`: fictional hotel catalog
+The original Streamlit demo can be started with `streamlit run app.py`.
 
-The assignment MVP uses exactly three fictional properties across Goa, Jaipur, and Manali. JSON is the verified source for room facts, availability, pricing, and simulated holds. The agent can recognize only destinations represented by its catalog; for other locations it clearly says that verified inventory is unavailable rather than inventing results. It does not use Google Places or claim real-world hotel coverage. Relative dates use `2026-08-24` as the repeatable demo date. The trace exposes state, tool calls, tool outputs, and validation errors, never private reasoning.
+## Project structure
 
-Set `AGENT_MODE=hybrid` and `OPENAI_API_KEY` in a local `.env` to enable OpenAI only for complex language and tool selection. Obvious requests stay offline, and API errors or the 25-call session limit fall back automatically. Keep API keys out of source control. A licensed hotel inventory provider would be required for broader real-world booking coverage.
+```text
+backend/     FastAPI API
+frontend/    Next.js interface
+src/         Agent, state, tools, location, and hold logic
+data/       Fictional hotel catalog and inventory
+tests/       Automated regression tests
+```
 
-Special thanks to Ashish Gupta for the opportunity and guidance.
+## Scope
+
+The JSON catalog is the source of truth for hotel facts. Unsupported destinations receive an honest “no verified inventory” response. Holds and sessions are in memory for this demo; production use would require a persistent store and licensed hotel inventory.
+
+To enable the optional OpenAI path, add `OPENAI_API_KEY` and `AGENT_MODE=hybrid` to a local `.env` file. Never commit API keys.
