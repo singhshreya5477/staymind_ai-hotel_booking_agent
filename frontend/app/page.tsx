@@ -58,7 +58,10 @@ export default function Home() {
       setTrace(data.trace);
       setMessages((current) => [...current, { role: "assistant", content: data.assistant_message }]);
     } catch (error) {
-      setMessages((current) => [...current, { role: "assistant", content: error instanceof Error ? error.message : "Something went wrong." }]);
+      const message = error instanceof TypeError
+        ? "I can’t reach the booking API. Set NEXT_PUBLIC_API_URL in Netlify to your deployed FastAPI URL and redeploy."
+        : error instanceof Error ? error.message : "Something went wrong.";
+      setMessages((current) => [...current, { role: "assistant", content: message }]);
     } finally {
       setLoading(false);
     }

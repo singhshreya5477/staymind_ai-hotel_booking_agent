@@ -36,7 +36,7 @@ Open <http://localhost:3000>.
 
 1. Deploy the FastAPI backend on a Python host such as Render or Railway.
 2. In Netlify, import this repository and keep the included `netlify.toml` settings.
-3. Add the environment variable `NEXT_PUBLIC_API_URL` with your backend URL, for example `https://your-api.example.com`.
+3. Add the environment variable `NEXT_PUBLIC_API_URL` with your deployed backend URL, for example `https://your-api.onrender.com`. Do not leave it empty or set to `localhost` on Netlify.
 4. Set the backend variable `FRONTEND_ORIGINS` to your Netlify URL, for example `https://your-site.netlify.app`, then redeploy the API.
 
 Netlify hosts the Next.js frontend. The FastAPI service, in-memory sessions, and fictional catalog run separately.
