@@ -1,6 +1,29 @@
 from datetime import date
+import pytest
 from src.agent import Agent
 from src.state import BookingState
+
+
+@pytest.mark.parametrize(
+    ("message", "destination", "room", "total"),
+    [
+        ("Goa from 2026-09-01 to 2026-09-03 for 2 people", "Goa", "Garden Suite", 26880),
+        ("Jaipur from 2026-09-01 to 2026-09-03 for 2 people", "Jaipur", "Heritage Suite", 24640),
+        ("Manali from 2026-09-01 to 2026-09-03 for 2 people", "Manali", "Pine View Chalet", 21280),
+        ("Bengaluru from 2026-09-01 to 2026-09-03 for 2 people", "Bengaluru", "Quiet Garden Room", 19040),
+    ],
+)
+def test_every_supported_destination_returns_grounded_search(message, destination, room, total):
+    state = BookingState()
+    agent = Agent(state)
+    response = agent.run(message)
+    trace_names = [name for name, _ in agent.trace]
+    assert state.destination == destination
+    assert room in response
+    assert f"₹{total:,}" in response
+    assert "search_properties" in trace_names
+    assert "check_availability" in trace_names
+    assert "calculate_price" in trace_names
 
 def test_next_weekend():
     state = BookingState()
