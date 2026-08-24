@@ -18,6 +18,8 @@ type Recommendation = { room: string; property: string; rate: number; total?: nu
 type ApiResponse = { session_id: string; assistant_message: string; booking_state: State; recommendations: Recommendation[]; trace: Trace[]; next_action: string };
 type Message = { role: "user" | "assistant"; content: string };
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
 const initialState: State = {
   destination: null, check_in: null, check_out: null, adults: null, children: 0,
   guests: 0, budget_per_night: null, preferences: [], hold_id: null,
@@ -43,7 +45,7 @@ export default function Home() {
     setLoading(true);
     setMessages((current) => [...current, { role: "user", content: message }]);
     try {
-      const response = await fetch("http://localhost:8000/api/chat", {
+      const response = await fetch(`${API_URL}/api/chat`, {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message, session_id: sessionId }),
       });
