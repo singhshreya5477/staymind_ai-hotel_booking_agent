@@ -89,6 +89,37 @@ def test_invalid_option_does_not_search():
     assert "not available" in response
     assert agent.trace[0][0] == "select_recommendation"
 
+def test_bangalore_alias_searches_bengaluru():
+    state = BookingState()
+    response = Agent(state).run("Bangalore next weekend for 2 people, under ₹10,000/night")
+    assert state.destination == "Bengaluru"
+    assert "Quiet Garden Room" in response
+
+def test_lalbagh_saves_quiet_preference_and_asks_for_dates():
+    state = BookingState()
+    response = Agent(state).run("Need a quiet stay near Lalbagh for two adults")
+    assert state.destination == "Bengaluru"
+    assert state.adults == 2
+    assert "quiet" in state.preferences
+    assert "dates" in response
+
+def test_bangalore_palace_uses_demo_experience_catalog():
+    agent = Agent(BookingState())
+    response = agent.run("How much is Bangalore Palace entry?")
+    assert "₹240" in response
+    assert "₹460" in response
+    assert "indicative" in response
+    assert agent.trace[0][0] == "resolve_destination"
+
+def test_local_experiences_require_selected_bengaluru_property():
+    state = BookingState()
+    agent = Agent(state)
+    agent.run("Bangalore next weekend for 2 people")
+    agent.run("option 1")
+    response = agent.run("What can we visit near the hotel?")
+    assert "Lalbagh Botanical Garden" in response
+    assert agent.trace[-1][0] == "get_local_experiences"
+
 def test_capacity_conflict_is_explained():
     agent = Agent(BookingState())
     response = agent.run("I need one room in Goa next weekend for 5 people")

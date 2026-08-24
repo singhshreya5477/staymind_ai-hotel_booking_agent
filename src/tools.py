@@ -5,6 +5,7 @@ from .hold_store import create_hold_record, get_hold_record
 
 CATALOG = json.loads((Path(__file__).parent.parent / "data/hotels.json").read_text())
 INVENTORY = json.loads((Path(__file__).parent.parent / "data/inventory.json").read_text())
+EXPERIENCES = json.loads((Path(__file__).parent.parent / "data/experiences.json").read_text(encoding="utf-8"))
 
 def _room(room_id):
     for hotel in CATALOG:
@@ -21,7 +22,12 @@ def search_properties(state):
         if hotel["city"].lower() != state.destination.lower():
             continue
         for room in hotel["rooms"]:
-            fits_preferences = all(p in room["amenities"] or p == "private" and "villa" in room["id"] for p in state.preferences)
+            fits_preferences = all(
+                p in room["amenities"]
+                or p == "quiet" and "quiet area" in room["amenities"]
+                or p == "private" and "villa" in room["id"]
+                for p in state.preferences
+            )
             if room["capacity"] >= state.guests and (not state.budget_per_night or room["rate"] <= state.budget_per_night) and fits_preferences:
                 matches.append({"property_id": hotel["id"], "property": hotel["name"], "room_id": room["id"], "room": room["name"], "rate": room["rate"], "capacity": room["capacity"], "amenities": room["amenities"]})
     return matches
@@ -67,3 +73,11 @@ def create_booking_hold(state, result):
 def get_booking_hold(hold_id):
     hold = get_hold_record(hold_id)
     return {"found": False, "reason": "No booking hold was found with that ID."} if hold is None else {"found": True, **hold}
+
+
+def get_local_experiences(destination):
+    return EXPERIENCES.get(destination, [])
+
+
+def get_experience_details(destination, name):
+    return next((item for item in get_local_experiences(destination) if item["name"].lower() == name.lower()), None)

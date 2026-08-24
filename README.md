@@ -4,7 +4,7 @@ Grounded conversational hotel-booking agent with a FastAPI backend and Next.js f
 
 ## Features
 
-- Natural-language hotel search across Goa, Jaipur, and Manali
+- Natural-language hotel search across Goa, Jaipur, Manali, and Bengaluru
 - Catalog-backed availability, capacity, pricing, and policies
 - Deterministic totals with 12% tax
 - Room selection and 15-minute booking holds
@@ -50,6 +50,6 @@ tests/       Automated regression tests
 
 ## Scope
 
-The JSON catalog is the source of truth for hotel facts. Unsupported destinations receive an honest “no verified inventory” response. Holds and sessions are in memory for this demo; production use would require a persistent store and licensed hotel inventory.
+The JSON catalog is the source of truth for hotel facts. Unsupported destinations receive an honest “no verified inventory” response. Bengaluru also includes demo-only local experience suggestions, clearly labeled as informational. Holds and sessions are in memory for this demo; production use would require a persistent store and licensed hotel inventory.
 
 To enable the optional OpenAI path, add `OPENAI_API_KEY` and `AGENT_MODE=hybrid` to a local `.env` file. Never commit API keys.

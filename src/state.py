@@ -34,11 +34,15 @@ class BookingState(BaseModel):
             self.adults, self.children = 3, 0
         elif "my wife and 2 kids" in text:
             self.adults, self.children = 1, 2
+        else:
+            word_adults = re.search(r"\b(one|two|three|four|five)\s+adults?\b", text)
+            if word_adults:
+                self.adults = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5}[word_adults.group(1)]
         budget = re.search(r"(?:under|below|budget)\s*[₹r]?\s*([\d,]+)\s*(k)?", text)
         if budget:
             value = int(budget.group(1).replace(",", ""))
             self.budget_per_night = value * 1000 if budget.group(2) else value
-        for preference in ("private pool", "private", "family", "sea view"):
+        for preference in ("private pool", "private", "family", "sea view", "quiet"):
             if preference in text and preference not in self.preferences:
                 self.preferences.append(preference)
         if "next weekend" in text:

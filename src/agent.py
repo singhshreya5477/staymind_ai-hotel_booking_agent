@@ -1,7 +1,7 @@
 import json
 import os
 
-from .tools import CATALOG, calculate_price, check_availability, create_booking_hold, get_booking_hold, get_policy, get_room_details, search_properties
+from .tools import CATALOG, calculate_price, check_availability, create_booking_hold, get_booking_hold, get_experience_details, get_local_experiences, get_policy, get_room_details, search_properties
 from .state import BookingState, merge_state
 from .location import normalize_location, resolve_message_location, supported_destinations
 from .reference_resolver import extract_option_number
@@ -67,6 +67,17 @@ class Agent:
         if "heated" in text and self.state.last_recommendations:
             self.trace.append(("get_room_details", get_room_details(self.state.last_recommendations[0]["room_id"])))
             return "I don't have verified information about whether the pool is heated."
+        if "bangalore palace" in text:
+            experience = get_experience_details("Bengaluru", "Bangalore Palace")
+            self.trace.append(("get_experience_details", experience or {"found": False}))
+            return "My demo experience catalog lists Bangalore Palace at ₹240 per adult for Indian visitors and references ₹460 for foreign visitors. These are indicative values and should be verified before visiting."
+        if "what can we visit" in text or "what is there to do" in text:
+            if self.state.selected_property_id and self.state.destination == "Bengaluru":
+                experiences = get_local_experiences("Bengaluru")
+                self.trace.append(("get_local_experiences", experiences))
+                names = ", ".join(item["name"] for item in experiences)
+                return f"Near your selected Bengaluru property, you could consider {names}. These are demo informational suggestions; verify details before visiting."
+            return "Please select a Bengaluru property first, and I can show nearby demo experiences."
         for policy in ("cancellation", "check-in", "check out", "children", "pets"):
             if policy in text and self.state.last_recommendations:
                 result = get_policy(self.state.last_recommendations[0]["property_id"], policy)

@@ -1,0 +1,6 @@
+{
+  "Bengaluru": [
+    {"name":"Lalbagh Botanical Garden","category":"garden","note":"Demo informational suggestion; verify opening hours before visiting."},
+    {"name":"Bangalore Palace","category":"heritage","indian_adult_price":240,"foreign_visitor_price":460,"note":"Indicative demo prices; verify current entry fees before visiting."}
+  ]
+}
