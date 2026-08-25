@@ -2,45 +2,45 @@
 
 ## Architecture
 
-StayMind is a small full-stack hotel-booking application. A Next.js frontend provides the chat experience and exposes booking state, recommendations, next actions, and tool traces. A FastAPI backend owns sessions and connects the UI to the Python agent. The agent uses a fictional JSON catalog for properties, rooms, amenities, policies, and inventory.
+StayMind is a small full-stack hotel-booking app. The Next.js frontend handles the conversation and shows the current booking state, recommendations, next action, and tool trace. FastAPI connects the frontend to the Python agent and manages sessions. Hotel details come from a fictional JSON catalog containing properties, rooms, amenities, policies, and inventory.
 
-The design deliberately separates probabilistic language understanding from deterministic booking logic. The model can interpret flexible guest language, while Python remains the source of truth for availability, capacity, pricing, policies, room selection, and booking holds.
+The main design decision is to keep language understanding separate from booking logic. The model can understand flexible guest messages, but Python remains responsible for availability, capacity, pricing, policies, room selection, and booking holds.
 
 ## Model Choice
 
-The optional LLM path uses `gpt-4.1-mini` because the task needs reliable language understanding and function selection without the cost or latency of a larger model. Simple, predictable requests use the offline deterministic flow. Complex requests can use OpenAI when `AGENT_MODE=hybrid` and an API key is configured; failures automatically fall back to the local flow.
+The optional LLM path uses `gpt-4.1-mini`. It is capable enough for language understanding and tool selection without adding unnecessary cost or latency. Simple requests use the deterministic offline flow. More flexible requests can use OpenAI when `AGENT_MODE=hybrid` and an API key is configured. If the API call fails, the agent falls back to the local flow.
 
 ## Agent Flow
 
-Each message follows this sequence:
+For each message, the agent:
 
-1. Load the session's validated booking state and recent messages.
-2. Resolve destinations and parse dates, guests, budget, and preferences.
-3. Ask for missing information when search requirements are incomplete.
-4. Search catalog rooms and validate capacity and availability for every night.
-5. Calculate totals in Python, including tax.
-6. Resolve room references such as `option 2` from saved recommendations.
-7. Revalidate availability and create a time-limited hold only after explicit selection.
-8. Retrieve saved hold records for status and expiry questions.
+1. Loads the session's validated state and recent messages.
+2. Resolves the destination and extracts dates, guests, budget, and preferences.
+3. Asks a concise question if search details are missing.
+4. Searches the catalog and checks capacity and availability for every night.
+5. Calculates the total in Python, including tax.
+6. Resolves references such as `option 2` from saved recommendations.
+7. Rechecks availability and creates a time-limited hold after explicit selection.
+8. Retrieves the saved hold when the guest asks about its status or expiry.
 
 ## State Management
 
-`BookingState` is a Pydantic model containing destination, dates, adults, children, budget, preferences, selected property and room, recommendations, next action, hold ID, hold status, and expiry. State is merged rather than rebuilt, so a change such as “one more night” preserves the known destination and preferences. Changing booking constraints clears stale recommendations and selections so old availability is never trusted.
+`BookingState` is a Pydantic model containing the destination, dates, guests, budget, preferences, selected property and room, recommendations, next action, and hold details. State is merged rather than rebuilt, so a message like “one more night” keeps the existing destination and preferences. When booking constraints change, stale recommendations and selections are cleared so old availability is never trusted.
 
-The FastAPI demo stores sessions and the hold store in memory. Recent messages are capped to keep context compact. Production would use Redis or PostgreSQL for durable, multi-instance sessions and holds.
+For the demo, FastAPI keeps sessions and holds in memory, and recent messages are capped to keep the context small. A production version should use Redis or PostgreSQL so sessions survive restarts and work across multiple instances.
 
 ## Tool Calling
 
-The agent has focused tools for destination resolution, room search, availability, deterministic pricing, room details, policies, hold creation, hold retrieval, and Bengaluru demo experiences. OpenAI function schemas use strict JSON parameters. Tool inputs and outputs are captured in a structured trace for the UI and evaluation.
+The agent uses small, focused tools for destination resolution, room search, availability, pricing, room details, policies, hold creation, hold retrieval, and Bengaluru demo experiences. OpenAI function schemas use strict JSON parameters. Every tool input and result is captured in a structured trace so the UI and tests can show what happened.
 
 ## Hallucination Prevention
 
-Hotel-specific facts are never generated from memory. Rooms must come from the catalog, availability must pass a date-by-date inventory check, capacity is validated before recommendation, and totals are calculated by Python. Unknown facts, such as whether a pool is heated, receive an explicit “not verified” response. Unsupported destinations receive the catalog's supported locations instead of invented hotels. Experience prices are clearly labeled as indicative demo information.
+The model is never trusted to invent hotel facts. Rooms must come from the catalog, availability is checked night by night, capacity is validated before recommendation, and totals are calculated by Python. If the catalog does not say whether a pool is heated, the agent says that detail is not verified. Unsupported destinations receive the supported catalog locations instead of invented hotels. Experience prices are clearly labeled as indicative demo information.
 
 ## Tradeoffs
 
-The implementation favors reliability and inspectability over broad real-world coverage. JSON and in-memory storage are fast to understand and suitable for the assignment, but they are not durable or live inventory. The hybrid LLM mode provides natural language flexibility, while the offline path adds predictable behavior and avoids unnecessary API cost. The UI is intentionally operational rather than a full booking platform.
+I chose reliability and inspectability over broad real-world coverage. JSON and in-memory storage are easy to understand and fit the assignment, but they are not durable and do not represent live inventory. Hybrid mode makes the conversation more flexible, while offline mode keeps basic requests predictable and inexpensive. The UI focuses on the booking workflow rather than trying to be a complete booking platform.
 
 ## Next Improvements
 
-The next priorities would be persistent storage, a licensed hotel inventory provider, and stronger structured state extraction for more natural date and guest expressions. I would also add room-combination search for capacity conflicts, cancellation of existing holds, authentication, rate limiting, observability, and a larger automated evaluation set with measured tool and state accuracy.
+Next, I would add persistent storage, a licensed hotel inventory provider, and stronger structured extraction for natural date and guest expressions. I would also support room combinations for capacity conflicts, hold cancellation, authentication, rate limiting, better observability, and a larger evaluation set with measured state and tool accuracy.
