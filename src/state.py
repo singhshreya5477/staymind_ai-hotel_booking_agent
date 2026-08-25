@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 import re
 from pydantic import BaseModel, Field
 from .location import resolve_message_location
@@ -57,6 +57,17 @@ class BookingState(BaseModel):
         if len(dates) == 2:
             self.check_in = date.fromisoformat(dates[0])
             self.check_out = date.fromisoformat(dates[1])
+        else:
+            natural_dates = re.search(
+                r"(?:from\s+)?(\d{1,2})\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)(?:ember|ruary|ch|il|e|y|ust|tember|ober|vember)?(?:\s+(20\d{2}))?\s+(?:to|[-–])\s+(\d{1,2})\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)(?:ember|ruary|ch|il|e|y|ust|tember|ober|vember)?(?:\s+(20\d{2}))?",
+                text,
+            )
+            if natural_dates:
+                start_day, start_month, start_year, end_day, end_month, end_year = natural_dates.groups()
+                year = int(start_year or end_year or today.year)
+                end_year = int(end_year or year)
+                self.check_in = datetime.strptime(f"{start_day} {start_month} {year}", "%d %b %Y").date()
+                self.check_out = datetime.strptime(f"{end_day} {end_month} {end_year}", "%d %b %Y").date()
         if "one more night" in text and self.check_out:
             self.check_out += timedelta(days=1)
         current_constraints = (self.destination, self.check_in, self.check_out, self.adults, self.children, self.budget_per_night, tuple(self.preferences))

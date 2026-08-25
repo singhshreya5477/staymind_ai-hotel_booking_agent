@@ -174,6 +174,22 @@ def test_switching_destination_does_not_keep_old_amenity_filter():
     assert state.preferences == []
     assert "Pine View Chalet" in response
 
+def test_natural_date_formats_are_parsed_before_hold():
+    state = BookingState()
+    agent = Agent(state)
+    agent.run("Goa next weekend for 3 people")
+    response = agent.run("I would like to select the Private Pool Villa at Goa Sands Retreat. Please place a 15-minute booking hold.")
+    assert "HOLD-" in response
+    assert agent.state.check_in == date(2026, 8, 29)
+    assert agent.state.check_out == date(2026, 8, 31)
+
+def test_full_natural_dates_update_existing_booking():
+    state = BookingState()
+    Agent(state).run("Goa for 3 people")
+    Agent(state).run("Please search from 29 August 2026 to 31 August 2026")
+    assert state.check_in == date(2026, 8, 29)
+    assert state.check_out == date(2026, 8, 31)
+
 def test_active_hold_acknowledgement_does_not_restart_flow():
     state = BookingState()
     agent = Agent(state)
