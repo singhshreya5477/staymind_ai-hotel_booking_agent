@@ -184,3 +184,11 @@ def test_active_hold_prevents_duplicate_hold():
     second = agent.run("Please place another hold on the Private Pool Villa")
     assert "HOLD-" in first
     assert "already have an active hold" in second
+
+def test_hold_state_contains_status_and_expiry():
+    state = BookingState()
+    agent = Agent(state)
+    agent.run("Bangalore next weekend for 2 people")
+    agent.run("Please place a hold on the Quiet Garden Room")
+    assert state.active_hold_status == "active"
+    assert state.active_hold_expires_at is not None

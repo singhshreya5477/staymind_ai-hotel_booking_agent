@@ -16,6 +16,8 @@ class BookingState(BaseModel):
     last_recommendations: list[dict] = Field(default_factory=list)
     last_next_action: str | None = None
     hold_id: str | None = None
+    active_hold_status: str | None = None
+    active_hold_expires_at: str | None = None
 
     @property
     def guests(self):

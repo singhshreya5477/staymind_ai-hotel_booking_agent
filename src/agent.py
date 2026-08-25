@@ -134,6 +134,8 @@ class Agent:
                 from zoneinfo import ZoneInfo
                 expires = datetime.fromisoformat(hold["expires_at"]).astimezone(ZoneInfo("Asia/Kolkata"))
                 self.state.last_next_action = "close_conversation"
+                self.state.active_hold_status = hold["status"]
+                self.state.active_hold_expires_at = hold["expires_at"]
                 return (f"You’re welcome. Your hold for the {hold['room_name']} at {hold['property_name']} "
                         f"remains active until {expires:%d %b %Y, %I:%M %p} IST.\n\n"
                         "No further action is needed. If you would like to modify the stay or review the hold again, just let me know.")
@@ -184,6 +186,8 @@ class Agent:
                 self.trace.append(("error", str(error)))
                 return f"I could not create the hold: {error}."
             self.state.hold_id = hold["hold_id"]
+            self.state.active_hold_status = hold["status"]
+            self.state.active_hold_expires_at = hold["expires_at"]
             self.state.last_next_action = "await_guest_or_hold_expiry"
             self.trace.append(("create_booking_hold", hold))
             return f"Your 15-minute booking hold is {hold['hold_id']} for {result['room']}."

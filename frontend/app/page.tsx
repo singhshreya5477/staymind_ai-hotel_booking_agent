@@ -11,10 +11,13 @@ type State = {
   guests: number;
   budget_per_night: number | null;
   preferences: string[];
+  selected_room_id: string | null;
   hold_id: string | null;
+  active_hold_status: string | null;
+  active_hold_expires_at: string | null;
 };
 type Trace = { action: string; status?: string; input?: unknown; result?: unknown; error?: string };
-type Recommendation = { room: string; property: string; rate: number; total?: number; capacity: number };
+type Recommendation = { room_id: string; room: string; property: string; rate: number; total?: number; capacity: number };
 type ApiResponse = { session_id: string; assistant_message: string; booking_state: State; recommendations: Recommendation[]; trace: Trace[]; next_action: string };
 type Message = { role: "user" | "assistant"; content: string };
 
@@ -22,7 +25,8 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 const initialState: State = {
   destination: null, check_in: null, check_out: null, adults: null, children: 0,
-  guests: 0, budget_per_night: null, preferences: [], hold_id: null,
+  guests: 0, budget_per_night: null, preferences: [], selected_room_id: null, hold_id: null,
+  active_hold_status: null, active_hold_expires_at: null,
 };
 
 export default function Home() {
@@ -69,6 +73,8 @@ export default function Home() {
 
   const text = (value: string | null) => value || "Not provided";
   const dates = state.check_in && state.check_out ? `${state.check_in} → ${state.check_out}` : "Not provided";
+  const selectedRoom = recommendations.find((item) => item.room_id === state.selected_room_id)?.room || state.selected_room_id || "Not selected";
+  const expiry = state.active_hold_expires_at ? new Date(state.active_hold_expires_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Kolkata" }) + " IST" : "Not active";
 
   return (
     <main className="shell">
@@ -94,7 +100,8 @@ export default function Home() {
             <div className="fact"><dt>Guests</dt><dd>{state.guests ? `${state.guests} total` : "Not provided"}</dd></div>
             <div className="fact"><dt>Budget</dt><dd>{state.budget_per_night ? `₹${state.budget_per_night.toLocaleString()}/night` : "Not provided"}</dd></div>
             <div className="fact"><dt>Preferences</dt><dd>{state.preferences.length ? state.preferences.join(", ") : "None yet"}</dd></div>
-            {state.hold_id && <div className="fact"><dt>Active hold</dt><dd className="hold-value">{state.hold_id}</dd></div>}
+            <div className="fact"><dt>Selected room</dt><dd>{selectedRoom}</dd></div>
+            {state.hold_id && <><div className="fact"><dt>Active hold</dt><dd className="hold-value">{state.hold_id}</dd></div><div className="fact"><dt>Hold status</dt><dd className="hold-value">{state.active_hold_status || "active"}</dd></div><div className="fact"><dt>Expires</dt><dd>{expiry}</dd></div></>}
           </dl></section>
 
           <section className="panel next"><div className="section-label">02 / workflow</div><h2 className="section-title">Next action</h2><p>{nextAction}</p></section>
