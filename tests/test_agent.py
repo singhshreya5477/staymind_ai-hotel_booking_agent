@@ -165,6 +165,15 @@ def test_verified_alternative_can_be_priced_next_turn():
     assert "Garden Suite" in response
     assert agent.state.last_next_action == "ask_for_room_selection"
 
+def test_switching_destination_does_not_keep_old_amenity_filter():
+    state = BookingState()
+    agent = Agent(state)
+    agent.run("Goa next weekend for 3 people with a private pool")
+    response = agent.run("Find a hotel in Old Manali from 2026-09-01 to 2026-09-03 for 2 people")
+    assert state.destination == "Manali"
+    assert state.preferences == []
+    assert "Pine View Chalet" in response
+
 def test_active_hold_acknowledgement_does_not_restart_flow():
     state = BookingState()
     agent = Agent(state)

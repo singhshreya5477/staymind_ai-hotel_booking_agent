@@ -28,7 +28,10 @@ class BookingState(BaseModel):
         previous_constraints = (self.destination, self.check_in, self.check_out, self.adults, self.children, self.budget_per_night, tuple(self.preferences))
         location = resolve_message_location(message)
         if location and location["matched"]:
+            destination_changed = self.destination and self.destination != location["canonical_name"]
             self.destination = location["canonical_name"]
+            if destination_changed and not any(preference in text for preference in self.preferences):
+                self.preferences = []
         adults = re.search(r"(\d+)\s*(?:people|guests?|persons?)", text)
         if adults:
             self.adults = int(adults.group(1))
